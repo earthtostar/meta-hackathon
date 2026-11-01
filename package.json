@@ -1,0 +1,29 @@
+{
+  "name": "experience-match",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test lib/clarify.test.ts lib/match.test.ts lib/draft-store.test.ts data/profile-scene.test.ts lib/match-events.test.ts lib/local-stories.test.ts"
+  },
+  "dependencies": {
+    "@react-three/fiber": "9.8.2",
+    "next": "16.4.3",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "three": "0.187.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@types/three": "0.187.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.3",
+    "typescript": "^5"
+  }
+}
