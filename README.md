@@ -110,6 +110,20 @@ See [docs/demo-script.md](docs/demo-script.md): three reproducible
 scenarios (student, founder, different-context) plus a local-story
 privacy walkthrough.
 
+## Hackathon submission
+
+Built for the **Meta Global AI Developer Hackathon 2026 — Indie Developer
+Track**. Repository: `https://github.com/earthtostar/meta-hackathon`
+(public). Judges run it locally per Installation above; the app serves on
+`http://localhost:3000`. No public deployment exists yet.
+
+## Demo video
+
+`https://www.youtube.com/watch?v=REPLACE_WITH_VIDEO_ID`
+
+Follow [docs/demo-script.md](docs/demo-script.md) for the recorded
+walkthrough (three scenarios plus the local-story privacy segment).
+
 ## Known limitations
 
 - Browser end-to-end has not been observed in the sandbox environment;
