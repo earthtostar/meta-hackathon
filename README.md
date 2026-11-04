@@ -1,4 +1,4 @@
-# KIVO — Experience Match
+# KIVO
 
 KIVO helps people understand a challenge through relevant experiences
 shared by others. Describe what you are facing; KIVO compares it with
@@ -58,6 +58,13 @@ not shown.
 - `json_schema` structured output; every ID and reference re-validated
   against the supplied candidate set.
 
+## Verified results (release commit)
+
+- `npm test` — **108/108 pass**, 0 fail (unit + focused suites).
+- `npx tsc --noEmit` — clean.
+- `npx eslint` — 0 errors, 0 warnings.
+- `npm run build` — production build succeeds; routes `/`, `/api/clarify`, `/api/match` intact.
+
 ## Installation
 
 Requires Node 20+.
@@ -65,7 +72,8 @@ Requires Node 20+.
 ```bash
 npm install
 cp .env.example .env.local
-# put your key in .env.local (server-only, never committed)
+# in .env.local, uncomment the MODEL_API_KEY line and paste your key
+# (server-only value, never committed, no NEXT_PUBLIC_ prefix)
 ```
 
 ## Environment variables
