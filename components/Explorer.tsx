@@ -4,14 +4,20 @@ import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 
 import dynamic from "next/dynamic";
 import {
   EXPERIENCES,
-  GROUPS,
-  relatedTo,
   EXPERIENCE_BY_ID,
+  GROUPS,
+  linkKey,
+  relatedTo,
+  sourceLabelForExperience,
 } from "../data/experiences";
 import { PROFILE_BY_ID } from "../data/profiles";
 import { profileForSceneNode, sceneNodesForProfile } from "../data/profile-scene";
+import type { SceneLink } from "./ExperienceScene";
 import {
+  COMPARE_SELECT_EVENT,
   MATCHES_EVENT,
+  NOTICE_EVENT,
+  RETURN_TO_RESULTS_EVENT,
   SCENE_EVENT,
   SELECT_PROFILE_EVENT,
   SHOW_NODE_EVENT,
@@ -21,6 +27,7 @@ import {
   validateProfilePayload,
   type SelectProfilePayload,
 } from "../lib/match-events";
+import { useDiscoveries } from "../lib/discoveries";
 
 const ExperienceScene = dynamic(() => import("./ExperienceScene"), {
   ssr: false,
@@ -74,6 +81,9 @@ export default function Explorer() {
   const [sceneFailed, setSceneFailed] = useState(false);
   const [open, setOpen] = useState(true);
   const [matchedProfiles, setMatchedProfiles] = useState<string[]>([]);
+  const [selectedLink, setSelectedLink] = useState<SceneLink | null>(null);
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const discoveries = useDiscoveries();
   const sceneFrameRef = useRef<HTMLDivElement | null>(null);
 
   // One-time read of browser-only environment (WebGL, motion preference,
@@ -124,10 +134,43 @@ export default function Explorer() {
   function selectNode(id: string | null) {
     setSelectedId(id);
     if (id === null) return;
+    setSelectedLink(null);
     const profileId = profileForSceneNode(id);
     if (profileId && matchedProfiles.includes(profileId)) {
       const payload: SelectProfilePayload = { profileId };
       dispatchMatchEvent(window, SELECT_PROFILE_EVENT, payload);
+    }
+  }
+
+  function returnToOverview() {
+    setSelectedId(null);
+    setSelectedLink(null);
+    setZoomIndex(1);
+    setResetSignal((n) => n + 1);
+  }
+
+  function backToResults() {
+    dispatchMatchEvent(window, RETURN_TO_RESULTS_EVENT, {});
+  }
+
+  function toggleDiscovery(exp: { id: string; title: string }) {
+    const target = {
+      refKind: "experience" as const,
+      refId: exp.id,
+      insight: undefined,
+    };
+    if (discoveries.has(target)) {
+      discoveries.remove(target);
+      dispatchMatchEvent(window, NOTICE_EVENT, {
+        message: "Removed from My Discoveries.",
+        tone: "info",
+      });
+    } else {
+      discoveries.add({ ...target, title: exp.title });
+      dispatchMatchEvent(window, NOTICE_EVENT, {
+        message: "Saved to My Discoveries.",
+        tone: "confirm",
+      });
     }
   }
 
@@ -153,9 +196,13 @@ export default function Explorer() {
     >
       <div className="explorer-head">
         <div>
-          <h2 id="explorer-heading">Experience explorer</h2>
+          <h2 id="explorer-heading">Experience Atlas</h2>
           <p className="fine-print">
-            Illustrative experience network — fictional examples. The
+            A night atlas of the fictional example cases. Lit spires are
+            documented attempts, rooted into districts of shared
+            circumstance; glowing routes mark what those cases have in
+            common. After a comparison, returned cases are ringed here —
+            select any spire or list entry to read the full case. The
             layout and links are illustrative, not computed matches.
           </p>
         </div>
@@ -178,14 +225,28 @@ export default function Explorer() {
                 <ExperienceScene
                   selectedId={selectedId}
                   onSelect={selectNode}
+                  onHover={(id) => setHoveredNodeId(id)}
                   zoom={ZOOM_STEPS[zoomIndex]}
                   resetSignal={resetSignal}
                   matchedIds={matchedNodes}
+                  reduceMotion={reduceMotion}
+                  selectedLinkKey={
+                    selectedLink
+                      ? linkKey(selectedLink.from, selectedLink.to)
+                      : null
+                  }
+                  onSelectLink={setSelectedLink}
                 />
               </SceneErrorBoundary>
               <p className="fine-print scene-hint">
-                Drag sideways to look around. Scrolling the page is never
-                captured. The list below selects the same cases.
+                Drag to orbit, scroll over the atlas to zoom, select a spire
+                or a route marker to read it. The list below selects the
+                same cases.
+              </p>
+              <p className="fine-print" role="status" aria-live="polite">
+                {hoveredNodeId && EXPERIENCE_BY_ID[hoveredNodeId]
+                  ? `Viewing: ${EXPERIENCE_BY_ID[hoveredNodeId].title} — select to open the full record.`
+                  : "Hover a spire to preview its record."}
               </p>
             </div>
           ) : (
@@ -250,16 +311,45 @@ export default function Explorer() {
           </div>
           {matchedNodes.size > 0 && (
             <p className="fine-print" role="status">
-              Outlined nodes were returned in your latest comparison — not
+              Ringed spires were returned in your latest comparison — not
               verified expertise, availability, or a guaranteed solution.
             </p>
+          )}
+
+          {selectedLink && (
+            <div className="link-note" role="status">
+              <p>
+                <strong>
+                  {EXPERIENCE_BY_ID[selectedLink.from]?.title ?? selectedLink.from}
+                </strong>{" "}
+                ↔{" "}
+                <strong>
+                  {EXPERIENCE_BY_ID[selectedLink.to]?.title ?? selectedLink.to}
+                </strong>
+              </p>
+              <p className="fine-print">
+                Connected because: {selectedLink.shared} Overlap is partial;
+                each case&apos;s differences still apply. These links are
+                illustrative, not AI-discovered findings.
+              </p>
+              <div className="actions">
+                <button
+                  type="button"
+                  className="secondary small"
+                  onClick={() => setSelectedLink(null)}
+                >
+                  Close connection
+                </button>
+              </div>
+            </div>
           )}
 
           <div className="detail" aria-live="polite">
             {selected ? (
               <article aria-labelledby="detail-title">
                 <p className="fine-print">
-                  Fictional case — self-reported, not verified.
+                  {sourceLabelForExperience(selected.id) ??
+                    "Fictional case — self-reported, not verified."}
                 </p>
                 {matchedNodes.has(selected.id) && (
                   <p className="fine-print" role="status">
@@ -274,10 +364,6 @@ export default function Explorer() {
                     <dd>{selected.situation}</dd>
                   </div>
                   <div>
-                    <dt>Constraints</dt>
-                    <dd>{selected.constraints}</dd>
-                  </div>
-                  <div>
                     <dt>Attempted approach</dt>
                     <dd>{selected.attempted}</dd>
                   </div>
@@ -285,13 +371,35 @@ export default function Explorer() {
                     <dt>Self-reported outcome</dt>
                     <dd>{selected.outcome}</dd>
                   </div>
+                  {matchedNodes.has(selected.id) && (
+                    <div>
+                      <dt>Why it may be relevant</dt>
+                      <dd>
+                        Your comparison returned this case: its overlaps are
+                        listed on the result card, with the exact supporting
+                        quotes. Treat it as a lead to inspect, not a verified
+                        solution.
+                      </dd>
+                    </div>
+                  )}
+                  <div>
+                    <dt>Relevant differences</dt>
+                    <dd>{selected.differences}</dd>
+                  </div>
+                  <div>
+                    <dt>Constraints</dt>
+                    <dd>{selected.constraints}</dd>
+                  </div>
                   <div>
                     <dt>Tools and context</dt>
                     <dd>{selected.tools}</dd>
                   </div>
                   <div>
-                    <dt>Important differences and unknowns</dt>
-                    <dd>{selected.differences}</dd>
+                    <dt>Source</dt>
+                    <dd>
+                      Fictional example — self-reported, not verified. Your
+                      own local stories never appear on this map.
+                    </dd>
                   </div>
                 </dl>
                 {related.length > 0 && (
@@ -318,20 +426,59 @@ export default function Explorer() {
                   </>
                 )}
                 <div className="actions">
+                  {matchedNodes.has(selected.id) && (
+                    <button
+                      type="button"
+                      className="primary small"
+                      onClick={backToResults}
+                    >
+                      Back to results
+                    </button>
+                  )}
                   <button
                     type="button"
                     className="secondary small"
-                    onClick={() => selectNode(null)}
+                    onClick={() => {
+                      dispatchMatchEvent(window, COMPARE_SELECT_EVENT, {
+                        kind: "node",
+                        nodeId: selected.id,
+                      });
+                    }}
                   >
-                    Clear selection
+                    Compare this case
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary small"
+                    aria-pressed={discoveries.has({
+                      refKind: "experience",
+                      refId: selected.id,
+                      insight: undefined,
+                    })}
+                    onClick={() => toggleDiscovery(selected)}
+                  >
+                    {discoveries.has({
+                      refKind: "experience",
+                      refId: selected.id,
+                      insight: undefined,
+                    })
+                      ? "Saved ✓"
+                      : "Save case"}
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary small"
+                    onClick={returnToOverview}
+                  >
+                    Return to overview
                   </button>
                 </div>
               </article>
             ) : (
               <p>
-                Select a case in the scene or the list to read what happened,
-                what is still uncertain, and which other cases share something
-                specific with it.
+                Select a spire in the atlas or a case in the list to read
+                what happened, what is still uncertain, and which other
+                cases share something specific with it.
               </p>
             )}
           </div>

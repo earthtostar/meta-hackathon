@@ -256,6 +256,38 @@ export const EXPERIENCE_BY_ID: Record<string, Experience> = Object.fromEntries(
   EXPERIENCES.map((e) => [e.id, e]),
 );
 
+/**
+ * Source classification for a scene node. Every demo experience is
+ * fictional and self-reported; user-authored local stories never appear
+ * as scene nodes, so there is no local/node case to classify here.
+ */
+export const NODE_SOURCE_LABEL = "Fictional case — self-reported, not verified.";
+
+export function sourceLabelForExperience(id: string): string | null {
+  return EXPERIENCE_BY_ID[id] ? NODE_SOURCE_LABEL : null;
+}
+
+/** Stable key for a connection, independent of render order. */
+export function linkKey(from: string, to: string): string {
+  return `${from}→${to}`;
+}
+
+/**
+ * The documented reason two experiences are connected, or null when no
+ * honest link exists. Derived only from LINKS metadata — never invented.
+ */
+export function sharedReason(a: string, b: string): string | null {
+  for (const link of LINKS) {
+    if (
+      (link.from === a && link.to === b) ||
+      (link.from === b && link.to === a)
+    ) {
+      return link.shared;
+    }
+  }
+  return null;
+}
+
 export function relatedTo(id: string): { experience: Experience; shared: string }[] {
   const out: { experience: Experience; shared: string }[] = [];
   for (const link of LINKS) {

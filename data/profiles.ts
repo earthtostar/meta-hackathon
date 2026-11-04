@@ -17,6 +17,13 @@ export interface ProfileCard {
   constraints: string;
   attempts: string;
   outcome: string;
+  /**
+   * Reported state of this card's outcome, annotated by the demo-data
+   * authors (not the model). Used for honest non-AI fallback labels.
+   * Same value set as the match outcome enum; kept as a local union to
+   * avoid a data/lib import cycle.
+   */
+  outcomeStatus: "resolved" | "partial" | "unresolved";
   /** Explicit gaps: what this card does not say. Never treat as known. */
   unknowns: string[];
 }
@@ -46,6 +53,7 @@ const CARDS: ProfileCard[] = [
       "Tried a larger USB supply on the bench and added startup delays before connecting.",
     outcome:
       "Self-reported: fewer restarts on the bench supply, but the battery case was never retested.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether brownout, trapped heat, or a software watchdog causes the restarts.",
       "Whether the bench-supply improvement transfers to battery power.",
@@ -62,6 +70,7 @@ const CARDS: ProfileCard[] = [
       "Tried full refresh cycles and different waveform timings from the panel notes.",
     outcome:
       "Self-reported: full refreshes reduced ghosting, but slow updates remain annoying.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether the panel or the drive timing is at fault.",
       "No power or Wi-Fi problem was ever observed here.",
@@ -78,6 +87,7 @@ const CARDS: ProfileCard[] = [
       "Tried shading the electronics box and logging the board temperature next to the readings.",
     outcome:
       "Self-reported: the drift tracked temperature, so readings are now temperature-flagged, not trusted blindly.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether a different probe would drift less.",
       "No restarts or connectivity failures were observed.",
@@ -94,6 +104,7 @@ const CARDS: ProfileCard[] = [
       "Tried wiping the sensor clean and moving the panel into full sun, but the dropout still happens.",
     outcome:
       "Self-reported: no fix yet; the evening recovery pattern is consistent.",
+    outcomeStatus: "unresolved",
     unknowns: [
       "Whether heat, power sag, or radio interference causes the dropout.",
       "The exact sensor model and radio behavior are not recorded.",
@@ -110,6 +121,7 @@ const CARDS: ProfileCard[] = [
       "Tried a brim, hotter bed for the first layers, and moving the printer away from the window.",
     outcome:
       "Self-reported: the brim plus a draft shield cut lifting roughly in half.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether a different plastic would behave better.",
       "Long-term adhesion over full prints is untested.",
@@ -126,6 +138,7 @@ const CARDS: ProfileCard[] = [
       "Tried balancing propellers and soft-mounting the camera with foam tape.",
     outcome:
       "Self-reported: noticeably smoother, though sharp turns still wobble.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether frame stiffness or tuning is the remaining cause.",
       "No electronics or power problem was investigated.",
@@ -142,6 +155,7 @@ const CARDS: ProfileCard[] = [
       "Tried free sniff samples, a three-for deal, and a paper signup sheet for repeat buyers.",
     outcome:
       "Self-reported: sold about half the stock; the signup sheet brought three repeat orders later.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether the same approach works without foot traffic.",
       "Costs and profit per bar are not recorded.",
@@ -158,6 +172,7 @@ const CARDS: ProfileCard[] = [
       "Tried library noticeboards and offering the first half hour free.",
     outcome:
       "Self-reported: two regular pupils within a month, both from the library board.",
+    outcomeStatus: "resolved",
     unknowns: [
       "Whether online listings would work as well.",
       "Pricing beyond the free trial is not described.",
@@ -174,6 +189,7 @@ const CARDS: ProfileCard[] = [
       "Tried free before-and-after posts and asking three photographer friends for honest quotes.",
     outcome:
       "Self-reported: a handful of sales after a post showing the same photo with and without the preset.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether sales continue without new posts.",
       "Refund and support load are not described.",
@@ -190,6 +206,7 @@ const CARDS: ProfileCard[] = [
       "Tried a one-page reader profile and asking the two most-mentioned shops first.",
     outcome:
       "Self-reported: one bakery sponsored three issues after seeing the reader profile.",
+    outcomeStatus: "partial",
     unknowns: [
       "Whether a second sponsor is reachable the same way.",
       "Reader numbers are self-reported and unverified.",
@@ -206,6 +223,7 @@ const CARDS: ProfileCard[] = [
       "Tried following one beginner series end to end instead of jumping between tutorials.",
     outcome:
       "Self-reported: finished a first simple scene in six weeks and kept the habit.",
+    outcomeStatus: "resolved",
     unknowns: [
       "Whether the pace suits someone without drawing experience.",
       "No comparison with other courses was made.",
@@ -222,6 +240,7 @@ const CARDS: ProfileCard[] = [
       "Tried practicing chord changes with a metronome app instead of full songs.",
     outcome:
       "Self-reported: clean changes on four chords after two months.",
+    outcomeStatus: "partial",
     unknowns: [
       "How much the earlier experience helped is unclear.",
       "No teacher feedback was ever sought.",
@@ -238,6 +257,7 @@ const CARDS: ProfileCard[] = [
       "Tried one sheet per month plus a single summary row instead of a complex template.",
     outcome:
       "Self-reported: both partners actually opened it, which the fancy template never achieved.",
+    outcomeStatus: "resolved",
     unknowns: [
       "Whether accuracy suffered from the simple layout.",
       "Long-term use beyond the first months is unknown.",
@@ -254,6 +274,7 @@ const CARDS: ProfileCard[] = [
       "Tried three tutorial openings, then picked one series and cut one short scene per week.",
     outcome:
       "Self-reported: a watchable five-minute film after two months; the laptop handled short timelines.",
+    outcomeStatus: "resolved",
     unknowns: [
       "Whether the laptop copes with longer projects.",
       "Only one editing app was ever tried.",

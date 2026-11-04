@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { MAX_BODY_BYTES } from "../../../lib/clarify";
 import {
+  FALLBACK_LIMITATION,
+  fallbackSearch,
   matchRequest,
   validateMatchInput,
   type MatchResult,
@@ -89,11 +91,33 @@ export async function POST(request: Request) {
     localStories: checked.value.localStories,
   });
   if (!result.ok) {
-    return NextResponse.json(
-      { ok: false, code: result.code, message: MESSAGE_FOR_CODE[result.code] },
-      { status: STATUS_FOR_CODE[result.code] },
+    // Rate limits and malformed input stay errors so abuse controls and
+    // validation keep working. Every other AI failure degrades to the
+    // deterministic keyword fallback, clearly labeled as such.
+    if (result.code === "rate_limited" || result.code === "bad_input") {
+      return NextResponse.json(
+        { ok: false, code: result.code, message: MESSAGE_FOR_CODE[result.code] },
+        { status: STATUS_FOR_CODE[result.code] },
+      );
+    }
+    const matches = fallbackSearch(
+      checked.value.draft,
+      checked.value.localStories,
     );
+    return NextResponse.json({
+      ok: true,
+      matches,
+      nextMoves: [],
+      limitations: [FALLBACK_LIMITATION],
+      fallback: true,
+    });
   }
   // Application data only; credentials are never included.
-  return NextResponse.json({ ok: true, matches: result.matches });
+  return NextResponse.json({
+    ok: true,
+    matches: result.matches,
+    nextMoves: result.nextMoves,
+    limitations: result.limitations,
+    fallback: false,
+  });
 }

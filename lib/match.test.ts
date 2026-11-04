@@ -17,6 +17,7 @@ const VALID_DRAFT = {
   goal: "Find why it restarts and fix it.",
   constraintsKnown: ["Battery powered"],
   attemptsKnown: ["Tried a larger USB supply"],
+  resourcesKnown: [],
   unknowns: ["Brownout or heat"],
   questions: [],
 };
@@ -313,9 +314,11 @@ describe("matchRequest", () => {
     if (result.ok) {
       assert.equal(result.matches[0].profileId, "local-abc123");
     }
-    const sent = JSON.parse(sentBody) as { input?: string };
+    const sent = JSON.parse(sentBody) as { input?: string; instructions?: string };
     assert.ok((sent.input ?? "").includes("local-abc123"));
     assert.ok((sent.input ?? "").includes("untrusted"));
+    // Local stories are framed as the user's own examples, never as people.
+    assert.ok((sent.instructions ?? "").includes("never as people"));
 
     const unsupplied = await matchRequest(VALID_DRAFT, {
       apiKey: "k",
@@ -381,7 +384,12 @@ describe("matchRequest", () => {
       apiKey: "k",
       fetchFn: (async () => jsonResponse(draftPayload({ results: [] }))) as typeof fetch,
     });
-    assert.deepEqual(empty, { ok: true, matches: [] });
+    assert.deepEqual(empty, {
+      ok: true,
+      matches: [],
+      nextMoves: [],
+      limitations: [],
+    });
   });
 
   it("maps provider failures without retrying", async () => {

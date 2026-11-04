@@ -36,6 +36,7 @@ function validPayload(questions: string[] = ["What powers it at night?"]) {
               goal: "Find why readings stop and fix it.",
               constraintsKnown: ["Battery powered"],
               attemptsKnown: ["Wiped the sensor"],
+              resourcesKnown: [],
               unknowns: ["Whether heat or power causes it"],
               questions,
             }),
@@ -94,6 +95,23 @@ describe("validateInput", () => {
 });
 
 describe("validateDraft", () => {
+  it("accepts resources the user stated and keeps unknowns unknown", () => {
+    const draft = validateDraft({
+      summary: "s",
+      goal: "g",
+      constraintsKnown: ["One weekend"],
+      attemptsKnown: [],
+      resourcesKnown: ["A spare sensor", "A soldering iron"],
+      unknowns: ["Whether heat or power causes it"],
+      questions: [],
+    });
+    assert.deepEqual(draft?.resourcesKnown, [
+      "A spare sensor",
+      "A soldering iron",
+    ]);
+    assert.deepEqual(draft?.unknowns, ["Whether heat or power causes it"]);
+  });
+
   it("rejects off-schema payloads", () => {
     assert.equal(validateDraft(null), null);
     assert.equal(validateDraft({ summary: "s" }), null);
@@ -103,6 +121,7 @@ describe("validateDraft", () => {
         goal: "g",
         constraintsKnown: [],
         attemptsKnown: [],
+        resourcesKnown: [],
         unknowns: [],
         questions: ["a", "b", "c", "d"],
       }),

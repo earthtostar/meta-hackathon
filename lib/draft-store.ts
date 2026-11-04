@@ -68,6 +68,12 @@ function validateDraftShape(data: unknown): ClarifyDraft | null {
   if (!isStringList(d["attemptsKnown"], MAX_LIST_ITEMS, MAX_LIST_ITEM_LEN)) {
     return null;
   }
+  // Additive field: records saved before resources existed read as empty.
+  const resourcesKnown =
+    d["resourcesKnown"] === undefined ? [] : d["resourcesKnown"];
+  if (!isStringList(resourcesKnown, MAX_LIST_ITEMS, MAX_LIST_ITEM_LEN)) {
+    return null;
+  }
   if (!isStringList(d["unknowns"], MAX_LIST_ITEMS, MAX_LIST_ITEM_LEN)) return null;
   if (!isStringList(d["questions"], MAX_ANSWERS, MAX_LIST_ITEM_LEN)) return null;
   return {
@@ -75,6 +81,7 @@ function validateDraftShape(data: unknown): ClarifyDraft | null {
     goal: d["goal"],
     constraintsKnown: d["constraintsKnown"],
     attemptsKnown: d["attemptsKnown"],
+    resourcesKnown,
     unknowns: d["unknowns"],
     questions: d["questions"],
   };
@@ -102,6 +109,7 @@ export function hasMeaningfulWork(state: {
       draft.goal.trim() !== "" ||
       draft.constraintsKnown.some((s) => s.trim() !== "") ||
       draft.attemptsKnown.some((s) => s.trim() !== "") ||
+      draft.resourcesKnown.some((s) => s.trim() !== "") ||
       draft.unknowns.some((s) => s.trim() !== "") ||
       draft.questions.some((s) => s.trim() !== ""))
   ) {

@@ -144,7 +144,7 @@ export default function StoryVault() {
   function validateForm(): string[] {
     const errors: string[] = [];
     if (form.title.trim() === "") {
-      errors.push("Give the experience a short title.");
+      errors.push("Give the route a short title.");
     } else if (form.title.length > STORY_TITLE_MAX) {
       errors.push(`Keep the title within ${STORY_TITLE_MAX} characters.`);
     }
@@ -253,12 +253,13 @@ export default function StoryVault() {
   return (
     <section aria-labelledby="story-vault-heading">
       <h2 id="story-vault-heading" tabIndex={-1} ref={sectionTitleRef}>
-        Share your experience
+        Add your route
       </h2>
       <p className="fine-print">
-        Local prototype: record practical experience in your own words.
-        Saved in this browser. Not published or shared with other people.
-        Saving here never creates a public profile and never contacts anyone.
+        Chart a route others can learn from — what you faced, what you
+        tried, where it led. Saved in this browser. Not published or
+        shared with other people. Adding a route never creates a public
+        profile and never contacts anyone.
       </p>
       {saveNotice === "saved" && (
         <p className="fine-print" role="status">
@@ -267,18 +268,22 @@ export default function StoryVault() {
       )}
       {saveNotice === "failed" && (
         <p className="error-text" role="alert">
-          Saving isn&apos;t working in this browser — stories may be lost
+          Saving isn&apos;t working in this browser — routes may be lost
           when the page closes. What you typed above is still on screen.
         </p>
       )}
 
       {stories.length === 0 && !showForm && (
-        <p className="fine-print">No saved experiences yet.</p>
+        <p className="fine-print">No charted routes yet.</p>
       )}
 
       <div className="field">
         {stories.map((story) => (
-          <article key={story.id} aria-labelledby={`story-title-${story.id}`}>
+          <article
+            key={story.id}
+            aria-labelledby={`story-title-${story.id}`}
+            className="story-card"
+          >
             <h3 id={`story-${story.id}`} tabIndex={-1}>
               <span id={`story-title-${story.id}`}>{story.title}</span>{" "}
               <span className="ai-badge">{OUTCOME_BADGE[story.outcomeStatus]}</span>
@@ -317,7 +322,7 @@ export default function StoryVault() {
                 </div>
               )}
             </dl>
-            <div className="field">
+            <div className="include-row">
               <label htmlFor={`include-${story.id}`}>
                 <input
                   id={`include-${story.id}`}
@@ -325,10 +330,10 @@ export default function StoryVault() {
                   checked={story.includeInMatching}
                   onChange={(event) => handleToggle(story, event.target.checked)}
                 />{" "}
-                Include this experience in my local comparisons
+                Include this route in my local comparisons
               </label>
               <p className="fine-print">
-                Enabled stories are sent to Meta alongside your approved
+                Enabled routes are sent to Meta alongside your approved
                 request when you explicitly start matching. Turning this on
                 alone sends nothing.
               </p>
@@ -339,7 +344,7 @@ export default function StoryVault() {
               </button>
               {deleteId === story.id ? (
                 <span role="group" aria-label={`Confirm deleting ${story.title}`}>
-                  <span className="fine-print">Delete this story? </span>
+                  <span className="fine-print">Delete this route? </span>
                   <button
                     type="button"
                     className="secondary small"
@@ -372,7 +377,7 @@ export default function StoryVault() {
 
       {!showForm &&
         (stories.length >= MAX_STORIES ? (
-          <p className="fine-print" role="status">
+          <p className="limit-note" role="status">
             This prototype keeps at most {MAX_STORIES} experiences. Delete
             one to add another.
           </p>
@@ -390,7 +395,7 @@ export default function StoryVault() {
           noValidate
           aria-label={editingId ? "Edit experience" : "Add experience"}
         >
-          <h3>{editingId ? "Edit experience" : "Add an experience"}</h3>
+          <h3>{editingId ? "Edit route" : "Chart a route"}</h3>
           {formErrors.length > 0 && (
             <div className="error-summary" role="alert">
               <ul>

@@ -30,6 +30,8 @@ describe("profile-to-scene mapping", () => {
     assert.deepEqual(sceneNodesForProfile("profile-leo"), []);
     assert.deepEqual(sceneNodesForProfile("profile-nobody"), []);
     assert.equal(profileForSceneNode("unknown-node"), null);
+    // User-authored local stories never receive a scene node or map action.
+    assert.deepEqual(sceneNodesForProfile("local-abc123"), []);
   });
 
   it("supports multi-node profiles without duplicates", () => {

@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "node --test lib/clarify.test.ts lib/match.test.ts lib/draft-store.test.ts data/profile-scene.test.ts lib/match-events.test.ts lib/local-stories.test.ts"
+    "test": "node --test lib/clarify.test.ts lib/match.test.ts lib/draft-store.test.ts data/profile-scene.test.ts lib/match-events.test.ts lib/local-stories.test.ts data/kivo-space.test.ts lib/match-eval.test.ts components/kivo/KivoSymbolMotion.test.ts lib/motion.test.ts lib/compare.test.ts lib/discoveries.test.ts lib/kivo-theme.test.ts lib/whatif.test.ts"
   },
   "dependencies": {
     "@react-three/fiber": "9.8.2",

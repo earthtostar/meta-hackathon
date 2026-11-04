@@ -22,6 +22,7 @@ const BASE: StoredDraft = {
     goal: "Find why it restarts.",
     constraintsKnown: ["Laptop USB power"],
     attemptsKnown: ["Tried another USB cable"],
+    resourcesKnown: [],
     unknowns: ["Brownout or heat"],
     questions: ["What changed with the other cable?"],
   },
@@ -99,6 +100,23 @@ describe("validateStoredDraft", () => {
     const bare = validateStoredDraft({ ...BASE, draft: null, answers: [] });
     assert.notEqual(bare, null);
     assert.equal(bare?.draft, null);
+  });
+
+  it("migrates records saved before resources existed", () => {
+    const legacy = {
+      ...BASE,
+      draft: {
+        summary: "ESP32 restarts when Wi-Fi starts.",
+        goal: "Find why it restarts.",
+        constraintsKnown: ["Laptop USB power"],
+        attemptsKnown: ["Tried another USB cable"],
+        unknowns: ["Brownout or heat"],
+        questions: [],
+      },
+    };
+    const loaded = validateStoredDraft(legacy);
+    assert.notEqual(loaded, null);
+    assert.deepEqual(loaded?.draft?.resourcesKnown, []);
   });
 });
 
